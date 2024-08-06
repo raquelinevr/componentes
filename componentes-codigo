@@ -1,0 +1,189 @@
+package com.example.barradeapps
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.barradeapps.ui.theme.BarraDeAppsTheme
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            BarraDeAppsTheme {
+                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                    ExampleScreen(
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExampleScreen(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Top row with two components
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SliderMinimalExample(
+                modifier = Modifier.weight(1f).padding(8.dp)
+            )
+            SliderAdvancedExample(
+                modifier = Modifier.weight(1f).padding(8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Bottom row with two components
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilterChipExample(
+                modifier = Modifier.weight(1f).padding(8.dp)
+            )
+            LinearDeterminateIndicator(
+                modifier = Modifier.weight(1f).padding(8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun SliderMinimalExample(modifier: Modifier = Modifier) {
+    var sliderPosition by remember { mutableStateOf(0f) }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Slider(
+            value = sliderPosition,
+            onValueChange = { sliderPosition = it },
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        )
+        Text(text = sliderPosition.toString())
+    }
+}
+
+@Composable
+fun SliderAdvancedExample(modifier: Modifier = Modifier) {
+    var sliderPosition by remember { mutableStateOf(0f) }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Slider(
+            value = sliderPosition,
+            onValueChange = { sliderPosition = it },
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.secondary,
+                activeTrackColor = MaterialTheme.colorScheme.secondary,
+                inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer
+            ),
+            steps = 3,
+            valueRange = 0f..50f
+        )
+        Text(text = sliderPosition.toString())
+    }
+}
+
+@Composable
+fun FilterChipExample(modifier: Modifier = Modifier) {
+    var selected by remember { mutableStateOf(false) }
+
+    FilterChip(
+        modifier = modifier,
+        onClick = { selected = !selected },
+        label = {
+            Text("Filter chip")
+        },
+        selected = selected,
+        leadingIcon = if (selected) {
+            {
+                Icon(
+                    imageVector = Icons.Filled.Done,
+                    contentDescription = "Done icon",
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            }
+        } else {
+            null
+        }
+    )
+}
+
+@Composable
+fun LinearDeterminateIndicator(modifier: Modifier = Modifier) {
+    var currentProgress by remember { mutableStateOf(0f) }
+    var loading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Button(onClick = {
+            loading = true
+            scope.launch {
+                loadProgress { progress ->
+                    currentProgress = progress
+                }
+                loading = false
+            }
+        }, enabled = !loading) {
+            Text("Start loading")
+        }
+
+        if (loading) {
+            LinearProgressIndicator(
+                progress = currentProgress,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+suspend fun loadProgress(updateProgress: (Float) -> Unit) {
+    for (i in 1..100) {
+        updateProgress(i.toFloat() / 100)
+        delay(100)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewExampleScreen() {
+    BarraDeAppsTheme {
+        ExampleScreen()
+    }
+}
